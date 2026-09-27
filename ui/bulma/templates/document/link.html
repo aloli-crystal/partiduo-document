@@ -1,0 +1,50 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. « Rattacher » un justificatif à une écriture ou une facture existante : recherche (libellé, pièce, numéro), propositions, rattachement par un bouton de formulaire. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'document/css/receipts.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block content %}
+<div class="pd-doc-split">
+  <section class="pd-panel pd-doc-side" aria-label="{% translate 'document_ui.show.image' %}">
+    <div class="pd-body">
+      {% if receipt.preview_url %}<img class="pd-doc-mini" src="{{ receipt.preview_url }}" alt="{{ receipt.alt }}">{% endif %}
+      <p><strong>{{ receipt.title }}</strong></p>
+      <p class="pd-doc-meta">{{ receipt.meta }}</p>
+      <p class="pd-doc-amt">{% if receipt.amount %}{{ receipt.amount }}{% else %}<span class="pd-muted">{% translate "document_ui.card.no_amount" %}</span>{% endif %}</p>
+    </div>
+  </section>
+  <div class="pd-doc-main">
+    {% if errors %}<div class="notification is-danger is-light pd-alert" role="alert">{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in errors %}<p>{{ message }}</p>{% endfor %}</div></div>{% endif %}
+    {% if to_process %}
+    <section class="pd-panel" aria-labelledby="pd-doc-link-title">
+      <header><h2 id="pd-doc-link-title">{% translate "document_ui.link.search_title" %}</h2></header>
+      <div class="pd-body">
+        <form method="get" action="{% url 'document:link' id: receipt.id %}" class="pd-doc-search" role="search">
+          <label class="is-sr-only" for="pd-doc-link-q">{% translate "document_ui.link.search" %}</label>
+          <input class="input" type="search" id="pd-doc-link-q" name="q" value="{{ search }}" placeholder="{% translate 'document_ui.link.search' %}">
+          <button class="button pd-touch" type="submit">{% include "ui/_icon.html" with name="search" %}<span>{% translate "document_ui.link.search_button" %}</span></button>
+        </form>
+        <p class="help">{% translate "document_ui.link.help" %}</p>
+      </div>
+      {% if candidates %}
+      <div class="pd-scroll"><table class="table is-fullwidth is-hoverable">
+        <caption class="is-sr-only">{% translate "document_ui.link.results" %}</caption>
+        <thead><tr><th scope="col">{% translate "document_ui.link.reference" %}</th><th scope="col">{% translate "document_ui.link.label" %}</th><th scope="col" class="pd-hide-s">{% translate "document_ui.form.date" %}</th><th scope="col" class="amount">{% translate "document_ui.link.amount" %}</th><th scope="col"><span class="is-sr-only">{% translate "document_ui.actions.link" %}</span></th></tr></thead>
+        <tbody>{% for candidate in candidates %}<tr data-doc-candidate="{{ candidate.kind }}-{{ candidate.id }}">
+          <td class="pd-mono">{{ candidate.reference }} <span class="tag is-light">{{ candidate.kind_label }}</span></td>
+          <td>{{ candidate.label }}{% if candidate.third_party %} <span class="pd-muted">· {{ candidate.third_party }}</span>{% endif %}</td>
+          <td class="pd-hide-s pd-mono">{{ candidate.date }}</td>
+          <td class="amount">{{ candidate.amount }}</td>
+          <td><form method="post" action="{% url 'document:link' id: receipt.id %}">{% csrf_input %}<input type="hidden" name="kind" value="{{ candidate.kind }}"><input type="hidden" name="target" value="{{ candidate.id }}"><button class="button is-small is-primary pd-touch" type="submit">{% translate "document_ui.actions.link" %}<span class="is-sr-only"> {{ candidate.reference }}</span></button></form></td>
+        </tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}
+      <div class="pd-body"><p class="pd-muted">{% translate "document_ui.link.none" %}</p></div>
+      {% endif %}
+    </section>
+    {% else %}
+    <p>{% translate "document.errors.receipt.status.not_to_process" %} <a href="{{ receipt.show_url }}">{% translate "document_ui.link.back" %}</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,2 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Retour instantané de la saisie depuis un justificatif : retour de l'interface (ui/entries/_check.html) et écart entre le total TTC calculé et le montant du justificatif (variables gap, receipt_amount). #}{% include "ui/entries/_check.html" %}
+{% if gap %}<p class="pd-state gap pd-doc-gap" data-doc-gap>{% translate "document_ui.entry.gap" gap: gap, amount: receipt_amount %}</p>{% endif %}

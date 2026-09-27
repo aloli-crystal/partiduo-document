@@ -1,0 +1,59 @@
+nl:
+  document:
+    module:
+      name: "Bewijsstukken"
+    permissions:
+      receipt:
+        read: "Te verwerken bewijsstukken bekijken"
+        write: "Bewijsstukken opladen, aanvullen, koppelen en boeken"
+    menu:
+      document_inbox: "Bewijsstukken"
+    sources:
+      photo: "Foto"
+      file: "Bestand"
+      einvoice: "Elektronische factuur"
+    statuses:
+      to_process: "Te verwerken"
+      attached: "Gekoppeld"
+      discarded: "Terzijde gelegd"
+    kinds:
+      invoice: "Factuur"
+      ticket: "Kasticket"
+      expense_report: "Onkostennota"
+      other: "Andere"
+    errors:
+      receipt:
+        content:
+          empty: "Het bestand is leeg."
+          too_large: "Het bestand is groter dan %{max} MiB."
+          unsupported: "Niet ondersteund formaat: laad een foto (JPEG, PNG, HEIC) of een pdf op."
+        source:
+          invalid: "Onbekende bron: %{value}."
+        supplier_code:
+          unknown: "Geen fiche met code %{value}."
+        supplier_name:
+          too_long: "De leverancier mag niet langer zijn dan %{max} tekens."
+        amount:
+          negative: "Het bedrag mag niet negatief zijn."
+          too_precise: "Het bedrag mag niet meer dan %{max} decimalen hebben."
+          too_large: "Het bedrag is te groot."
+        currency_code:
+          invalid: "Ongeldige muntcode: %{value}."
+        kind:
+          invalid: "Onbekende soort: %{value}."
+        note:
+          too_long: "De notitie mag niet langer zijn dan %{max} tekens."
+        reference:
+          too_long: "De referentie mag niet langer zijn dan %{max} tekens."
+        external_ref:
+          blank: "De factuur-id bij het platform is verplicht."
+          too_long: "De factuur-id bij het platform mag niet langer zijn dan %{max} tekens."
+        status:
+          not_to_process: "Dit bewijsstuk moet niet meer verwerkt worden."
+          already_to_process: "Dit bewijsstuk staat al bij de te verwerken stukken."
+        entry_id:
+          unknown: "Boeking niet gevonden."
+          cancelled: "Boeking %{value} is geannuleerd: koppel het bewijsstuk aan een geldige boeking."
+        invoice_id:
+          unknown: "Factuur niet gevonden."
+        module_inactive: "De module %{module} is niet actief."

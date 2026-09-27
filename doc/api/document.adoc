@@ -1,0 +1,89 @@
+= Contrat `Document::Api`
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+Contrat public de l'extension `DOCUMENT` (ADR-003 D6, DECISIONS C2) : acteur
+en premier argument, contrôle d'accès en première ligne (`ModuleDisabled` si
+l'extension est inactive, `Forbidden` sans permission), objets de vue
+immuables, erreurs par champ (`Partiduo::Api::FieldError`, clés
+`document.errors.receipt.*`).
+
+== Permissions
+
+[cols="1,3",options="header"]
+|===
+|Permission |Ouvre
+
+|`document.receipt.read` |boîte, consultation, compteurs, doublons
+|`document.receipt.write` |dépôt, réception, compléments, écarter, remettre à traiter, rattacher, saisir l'écriture
+|`core.attachment.read` (socle) |fichiers (`file`)
+|`core.attachment.write` (socle) |dépôt et réception (`capture`, `receive`)
+|===
+
+« Saisir l'écriture » exige en plus `accounting.entry.post` et le droit
+d'écrire dans le journal ; le rattachement lit l'écriture ou la facture avec
+les droits de l'acteur.
+
+== Commandes
+
+[cols="2,3",options="header"]
+|===
+|Appel |Effet
+
+|`capture(actor, CaptureInput) : Result(ReceiptView)`
+|Photo ou fichier (JPEG, PNG, HEIC, PDF reconnus au contenu, 20 Mio au
+plus) : original, vignette et version réduite dans les pièces jointes du
+socle ; statut `to_process`. Source `photo` (image) ou `file` (PDF) si non
+précisée.
+
+|`receive(actor, ReceiveInput) : Result(ReceiptView)`
+|*API publique pour `partiduo-einvoicing`* : facture reçue par la plateforme
+agréée (PDF, Factur-X, image, ou XML seul), données structurées XML
+facultatives (`data`), `external_ref` obligatoire et unique : un second
+appel rend le justificatif déjà reçu (idempotence). Source `einvoice`,
+nature `invoice`.
+
+|`update_details(actor, id, DetailsInput)` |compléments facultatifs
+|`discard(actor, id)` |`to_process` → `discarded`
+|`reopen(actor, id)` |`discarded` ou `attached` → `to_process` (l'écriture n'est pas modifiée)
+|`link_entry(actor, id, entry_id)` |rattache à une écriture en vigueur (Comptabilité active)
+|`link_invoice(actor, id, invoice_id)` |rattache à une facture, un acompte ou un avoir émis (Facturation active)
+|`post_purchase(actor, id, Accounting::DocumentInput) : Result(EntryView)`
+|écriture d'achat avec l'original en pièce jointe et la source
+`document:<id>` ; le justificatif passe en `attached` par l'abonnement à
+`entry.posted`, dans la même transaction
+|===
+
+Requêtes de contrôle : `check_capture`, `check_details`,
+`check_purchase(actor, id, DocumentInput) : Result(EntryDraftView)`.
+
+== Requêtes
+
+[cols="2,3",options="header"]
+|===
+|Appel |Rend
+
+|`receipts(actor, ReceiptQuery)` |justificatifs d'un statut (`nil` : tous), d'une source, cherchés dans fournisseur, note, référence, nom du fichier ; du plus récent au plus ancien
+|`count_receipts`, `counts(actor) : CountsView` |nombres par statut
+|`pending_count(actor) : Int64?` |compteur du menu et du tableau de bord ; `nil` si l'extension est inactive ou l'acteur sans droit
+|`receipt(actor, id)` |un justificatif
+|`file(actor, id, variant) : FileView` |`original`, `preview`, `thumbnail`, `data`
+|`duplicates(actor, id) : DuplicatesView` |doublons possibles (justificatifs, écritures d'achat)
+|`candidates(actor, id, search) : Array(CandidateView)` |écritures et factures auxquelles rattacher
+|`purchase_prefill(actor, id, vat_rate : String?) : PrefillView` |écriture d'achat préremplie ; `vat_rate` `nil` : taux normal du dossier, `""` : sans TVA
+|===
+
+== Événements
+
+* `entry.posted` avec `source = document:<id>` (hors extourne) : le
+  justificatif passe en `attached`.
+* `entry.cancelled` : les justificatifs rattachés à l'écriture annulée
+  reviennent `to_process`.
+
+== Interface
+
+`ui/bulma/` monte les routes sous `/ext/DOCUMENT/` (`document:index`,
+`capture`, `show`, `file`, `details`, `discard`, `reopen`, `link`, `entry`,
+`entry_check`) et déclare le compteur `DOCUMENT_INBOX` par
+`PartiduoUi::Extensions.counter` (menu et « À traiter »).

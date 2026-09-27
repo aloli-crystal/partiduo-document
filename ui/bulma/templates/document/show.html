@@ -1,0 +1,52 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Consultation d'un justificatif : image à côté des compléments (une colonne sur téléphone, l'image d'abord), doublons possibles, actions selon le statut (saisir l'écriture, rattacher, écarter, remettre à traiter). #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'document/css/receipts.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block actions %}{% if receipt.to_process %}{% if receipt.entry_url %}<a class="button is-primary pd-touch" href="{{ receipt.entry_url }}">{% include "ui/_icon.html" with name="notebook-pen" %}<span>{% translate "document_ui.actions.enter" %}</span></a>{% endif %}{% if receipt.link_url %}<a class="button pd-touch" href="{{ receipt.link_url }}">{% include "ui/_icon.html" with name="paperclip" %}<span>{% translate "document_ui.actions.link" %}</span></a>{% endif %}{% endif %}{% endblock actions %}
+{% block content %}
+<div class="pd-doc-split">
+  <section class="pd-panel pd-doc-side" aria-labelledby="pd-doc-image-title">
+    <header><h2 id="pd-doc-image-title">{% translate "document_ui.show.image" %}</h2><span class="tag is-light pd-doc-src-{{ receipt.source }}">{{ receipt.source_label }}</span></header>
+    <div class="pd-body">
+      {% if can_files %}{% include "document/_image.html" %}{% else %}<p class="pd-muted">{% translate "document_ui.show.no_file_access" %}</p>{% endif %}
+      <p class="is-size-7 pd-muted mt-3">{% translate "document_ui.show.captured" date: captured %} · {{ size }}</p>
+      <p class="is-size-7 pd-muted mt-2">{% translate "document_ui.index.proof_note" %}</p>
+    </div>
+  </section>
+  <div class="pd-doc-main">
+    <section class="pd-panel" aria-labelledby="pd-doc-status-title">
+      <header><h2 id="pd-doc-status-title">{% translate "document_ui.show.status" %}</h2><span class="tag {% if receipt.attached %}is-success{% elsif receipt.discarded %}is-dark{% else %}is-warning{% endif %} is-light" data-doc-status="{{ receipt.status }}">{{ receipt.status_label }}</span></header>
+      <div class="pd-body">
+        {% if receipt.attached %}<p>{% if receipt.linked_url %}<a href="{{ receipt.linked_url }}">{{ receipt.linked_label }}</a>{% else %}{{ receipt.linked_label }}{% endif %}</p>{% endif %}
+        {% if duplicates || entries %}
+        <div class="notification is-warning is-light pd-alert" role="status" data-doc-duplicates>{% include "ui/_icon.html" with name="triangle-alert" %}<div>
+          <p><strong>{% translate "document_ui.show.duplicates" %}</strong></p>
+          <ul>{% for other in duplicates %}<li><a href="{{ other.show_url }}">{{ other.title }}</a> · {{ other.meta }}{% if other.amount %} · {{ other.amount }}{% endif %} · {{ other.status_label }}</li>{% endfor %}
+          {% for entry in entries %}<li>{% translate "document_ui.show.duplicate_entry" %} {% if entry.url %}<a href="{{ entry.url }}">{{ entry.reference }}</a>{% else %}{{ entry.reference }}{% endif %} · {{ entry.label }} · {{ entry.date }} · {{ entry.amount }}</li>{% endfor %}</ul>
+        </div></div>
+        {% endif %}
+        {% if can_write %}<div class="buttons">
+          {% if receipt.to_process %}<form method="post" action="{% url 'document:discard' id: receipt.id %}">{% csrf_input %}<button class="button is-small pd-touch" type="submit">{% include "ui/_icon.html" with name="x" %}<span>{% translate "document_ui.actions.discard" %}</span></button></form>
+          {% else %}<form method="post" action="{% url 'document:reopen' id: receipt.id %}">{% csrf_input %}<button class="button is-small pd-touch" type="submit">{% translate "document_ui.actions.reopen" %}</button></form>{% endif %}
+        </div>{% endif %}
+      </div>
+    </section>
+    <section class="pd-panel" aria-labelledby="pd-doc-details-title">
+      <header><h2 id="pd-doc-details-title">{% translate "document_ui.show.details" %}</h2></header>
+      <div class="pd-body">
+        {% if can_write %}
+        <form method="post" action="{% url 'document:details' id: receipt.id %}" novalidate>
+          {% csrf_input %}
+          {% include "ui/_errors.html" with messages=errors.base, id="pd-doc-base-errors" %}
+          {% include "document/_details_fields.html" %}
+          <div class="buttons mt-3"><button class="button is-primary pd-touch" type="submit">{% translate "ui.forms.save" %}</button></div>
+        </form>
+        {% else %}
+        <dl class="pd-doc-dl"><dt>{% translate "document_ui.form.supplier" %}</dt><dd>{% if values.supplier %}{{ values.supplier }}{% else %}—{% endif %}</dd><dt>{% translate "document_ui.form.amount" %}</dt><dd>{% if receipt.amount %}{{ receipt.amount }}{% else %}—{% endif %}</dd><dt>{% translate "document_ui.form.note" %}</dt><dd>{% if values.note %}{{ values.note }}{% else %}—{% endif %}</dd></dl>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock content %}

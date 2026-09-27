@@ -1,0 +1,17 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Carte d'un justificatif (Document::Ui::ReceiptCard, variable item) : vignette produite par le serveur, source, fournisseur, date, montant TTC, actions selon le statut. #}<article class="pd-doc-card" data-doc-receipt="{{ item.id }}">
+  <a class="pd-doc-thumb" href="{{ item.show_url }}" tabindex="-1" aria-hidden="true">{% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="" loading="lazy" width="120" height="160">{% else %}<span class="pd-doc-noimg">{% include "ui/_icon.html" with name="file-text" %}</span>{% endif %}</a>
+  <div class="pd-doc-info">
+    <div><span class="tag is-light pd-doc-src-{{ item.source }}">{{ item.source_label }}</span></div>
+    <h3><a href="{{ item.show_url }}">{{ item.title }}</a></h3>
+    <p class="pd-doc-meta">{{ item.meta }}</p>
+    <p class="pd-doc-amt">{% if item.amount %}{{ item.amount }}{% else %}<span class="pd-muted">{% translate "document_ui.card.no_amount" %}</span>{% endif %}</p>
+    <div class="pd-doc-acts">
+      {% if item.to_process %}
+      {% if item.entry_url %}<a class="button is-small is-primary pd-touch" href="{{ item.entry_url }}">{% translate "document_ui.actions.enter" %}</a>{% endif %}
+      {% if item.link_url %}<a class="button is-small pd-touch" href="{{ item.link_url }}">{% translate "document_ui.actions.link" %}</a>{% endif %}
+      {% elsif item.attached %}
+      {% if item.linked_url %}<a class="tag is-success is-light" href="{{ item.linked_url }}">{{ item.linked_label }}</a>{% else %}<span class="tag is-success is-light">{{ item.linked_label }}</span>{% endif %}
+      {% else %}<span class="tag is-light">{{ item.status_label }}</span>{% endif %}
+    </div>
+  </div>
+</article>

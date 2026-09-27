@@ -1,0 +1,93 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Justificatifs (extension DOCUMENT, ADR-005 D8) : repris de la maquette
+   (« Justificatifs »), jetons de couleur de partiduo-ui-bulma. Téléphone
+   d'abord : une colonne, cibles de 44 px, bouton de prise de vue en pleine
+   largeur ; la grille s'ouvre sur tablette et ordinateur. */
+
+.pd-doc-tabs { margin-block-end: 1rem; }
+.pd-doc-n { font-variant-numeric: tabular-nums; }
+
+.pd-doc-capture { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; padding: 1rem; }
+.pd-doc-cam { width: 100%; justify-content: center; gap: .5rem; min-height: 56px; }
+.pd-doc-cam .pd-icon { width: 1.35rem; height: 1.35rem; }
+/* Le champ de fichier reste présent (clavier, lecteurs d'écran) : visible
+   sans JavaScript, remplacé visuellement par le bouton quand il est actif. */
+.pd-js .pd-doc-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.pd-js .pd-doc-file:focus-visible + .pd-doc-drop, .pd-doc-cam:focus-within { outline: 2px solid var(--pd-focus); outline-offset: 2px; }
+.pd-doc-drop { display: none; border: 2px dashed var(--pd-rule); border-radius: var(--bulma-radius); padding: 1rem; color: var(--pd-muted);
+  font-size: .9rem; text-align: center; cursor: pointer; align-items: center; justify-content: center; gap: .5rem; }
+.pd-doc-drop.is-over { border-color: var(--pd-focus); background: var(--pd-row-alt); color: var(--pd-ink); }
+.pd-doc-full { grid-column: 1 / -1; }
+
+.pd-doc-quick { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1rem; border-block-start: 1px solid var(--pd-rule); }
+.pd-doc-quick[hidden] { display: none; }
+.pd-doc-preview { margin: 0; display: grid; gap: .35rem; justify-items: start; }
+.pd-doc-preview[hidden] { display: none; }
+.pd-doc-preview img { width: 7rem; aspect-ratio: 3 / 4; object-fit: cover; border-radius: var(--bulma-radius-small); border: 1px solid var(--pd-rule); background: #fff; }
+.pd-doc-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; align-content: start; }
+.pd-doc-fields .field { margin: 0; }
+.pd-doc-fields .input, .pd-doc-fields select { min-height: 44px; font-size: 1rem; } /* 16 px : pas de zoom sur iPhone */
+
+.pd-doc-search { display: flex; gap: .35rem; align-items: center; }
+.pd-doc-search .input { min-width: 0; }
+
+.pd-doc-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; padding: .75rem; }
+.pd-doc-card { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .8rem; padding: .8rem; border: 1px solid var(--pd-rule);
+  border-radius: var(--bulma-radius); background: var(--pd-surface); }
+.pd-doc-thumb img, .pd-doc-noimg { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: var(--bulma-radius-small);
+  border: 1px solid var(--pd-rule); background: #fff; display: block; }
+.pd-doc-noimg { display: grid; place-items: center; color: var(--pd-muted); }
+.pd-doc-noimg .pd-icon { width: 2rem; height: 2rem; }
+.pd-doc-noimg-large { aspect-ratio: auto; min-height: 12rem; gap: .5rem; padding: 1rem; text-decoration: none; }
+.pd-doc-info { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.pd-doc-info h3 { font-weight: 600; font-size: .95rem; line-height: 1.3; overflow-wrap: anywhere; }
+.pd-doc-info h3 a { color: var(--pd-ink); }
+.pd-doc-meta { font-size: .8rem; color: var(--pd-muted); overflow-wrap: anywhere; }
+.pd-doc-amt { font-family: var(--bulma-family-code); font-weight: 600; font-variant-numeric: tabular-nums; }
+.pd-doc-acts { display: flex; gap: .4rem; flex-wrap: wrap; margin-block-start: .4rem; }
+.pd-doc-src-einvoice { background: var(--bulma-link-light, #eef3fc); color: var(--bulma-link-dark, #1f4fa0); }
+.pd-doc-src-photo { background: var(--bulma-warning-light, #fffaeb); color: var(--bulma-warning-dark, #946c00); }
+
+.pd-doc-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.pd-doc-split > .pd-panel, .pd-doc-main > .pd-panel { margin-block-end: 0; }
+.pd-doc-main { display: grid; gap: 1rem; min-width: 0; }
+.pd-doc-image { margin: 0; display: grid; gap: .5rem; }
+.pd-doc-image img { width: 100%; max-height: 60vh; object-fit: contain; border: 1px solid var(--pd-rule); border-radius: var(--bulma-radius-small); background: #fff; }
+.pd-doc-image figcaption { margin: 0; }
+.pd-doc-mini { width: 6rem; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid var(--pd-rule); border-radius: var(--bulma-radius-small); float: inline-start; margin-inline-end: .75rem; }
+.pd-doc-dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .75rem; font-size: .85rem; margin-block-start: .75rem; }
+.pd-doc-dl dt { color: var(--pd-muted); }
+.pd-doc-dl dd { margin: 0; text-align: end; overflow-wrap: anywhere; }
+.pd-doc-image-summary { cursor: pointer; font-weight: 600; margin-block-end: .5rem; list-style-position: inside; }
+.pd-doc-vat { margin-block-end: 1rem; }
+.pd-doc-vat .label { font-weight: 500; font-size: .9rem; }
+.pd-doc-gap { display: inline-block; margin: .5rem 1rem; }
+
+/* Téléphone : le formulaire de saisie garde toute la largeur, l'image se
+   replie (élément details) au-dessus. */
+@media (max-width: 767.98px) {
+  .pd-doc-fields { grid-template-columns: minmax(0, 1fr); }
+  .pd-doc-card { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .pd-doc-acts .button { flex: 1 1 auto; }
+  .pd-doc-image img { max-height: 45vh; }
+  .pd-head .pd-ext { display: none; }
+}
+
+/* Tablette et ordinateur : glisser-déposer, grille de cartes, image à côté. */
+@media (min-width: 768px) {
+  .pd-doc-capture { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+  .pd-doc-cam { width: auto; }
+  .pd-js .pd-doc-drop { display: flex; }
+  .pd-doc-quick { grid-template-columns: 7rem minmax(0, 1fr); }
+  .pd-doc-quick .buttons { grid-column: 2; }
+  .pd-doc-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pd-doc-fields .pd-doc-full { grid-column: 1 / -1; }
+  .pd-doc-cards { grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); padding: 1rem; gap: 1rem; }
+  .pd-doc-split { grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr); }
+  .pd-doc-entry { grid-template-columns: minmax(16rem, 1fr) minmax(0, 2fr); }
+  .pd-doc-sticky { position: sticky; top: 1rem; }
+}
+
+@media print {
+  .pd-doc-capture-panel, .pd-doc-acts, .pd-doc-search { display: none !important; }
+}

@@ -1,0 +1,21 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Compléments facultatifs d'un justificatif (ADR-005 D8 : fournisseur, montant TTC, date, nature, référence, note ; variables values, errors, kinds, suppliers). Rien n'est obligatoire. #}<div class="pd-doc-fields">
+  <div class="field pd-doc-full"><label class="label" for="pd-doc-supplier">{% translate "document_ui.form.supplier" %}</label>
+    <input class="input" id="pd-doc-supplier" name="supplier" value="{{ values.supplier }}" list="pd-doc-suppliers" autocomplete="off"{% if errors.supplier %} aria-invalid="true" aria-describedby="pd-doc-supplier-errors"{% endif %}>
+    {% include "ui/_errors.html" with messages=errors.supplier, id="pd-doc-supplier-errors" %}</div>
+  <div class="field"><label class="label" for="pd-doc-amount">{% translate "document_ui.form.amount" %}</label>
+    <input class="input pd-mono" id="pd-doc-amount" name="amount" value="{{ values.amount }}" inputmode="decimal" autocomplete="off"{% if errors.amount %} aria-invalid="true" aria-describedby="pd-doc-amount-errors"{% endif %}>
+    {% include "ui/_errors.html" with messages=errors.amount, id="pd-doc-amount-errors" %}</div>
+  <div class="field"><label class="label" for="pd-doc-date">{% translate "document_ui.form.date" %}</label>
+    <input class="input pd-mono" type="date" id="pd-doc-date" name="date" value="{{ values.date }}"{% if errors.date %} aria-invalid="true" aria-describedby="pd-doc-date-errors"{% endif %}>
+    {% include "ui/_errors.html" with messages=errors.date, id="pd-doc-date-errors" %}</div>
+  <div class="field"><label class="label" for="pd-doc-kind">{% translate "document_ui.form.kind" %}</label>
+    <div class="select is-fullwidth"><select id="pd-doc-kind" name="kind"{% if errors.kind %} aria-invalid="true" aria-describedby="pd-doc-kind-errors"{% endif %}>{% for option in kinds %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+    {% include "ui/_errors.html" with messages=errors.kind, id="pd-doc-kind-errors" %}</div>
+  <div class="field"><label class="label" for="pd-doc-reference">{% translate "document_ui.form.reference" %}</label>
+    <input class="input pd-mono" id="pd-doc-reference" name="reference" value="{{ values.reference }}" maxlength="100"{% if errors.reference %} aria-invalid="true" aria-describedby="pd-doc-reference-errors"{% endif %}>
+    {% include "ui/_errors.html" with messages=errors.reference, id="pd-doc-reference-errors" %}</div>
+  <div class="field pd-doc-full"><label class="label" for="pd-doc-note">{% translate "document_ui.form.note" %}</label>
+    <input class="input" id="pd-doc-note" name="note" value="{{ values.note }}" maxlength="2000" placeholder="{% translate 'document_ui.form.note_placeholder' %}"{% if errors.note %} aria-invalid="true" aria-describedby="pd-doc-note-errors"{% endif %}>
+    {% include "ui/_errors.html" with messages=errors.note, id="pd-doc-note-errors" %}</div>
+</div>
+{% if suppliers %}<datalist id="pd-doc-suppliers">{% for option in suppliers %}<option value="{{ option.value }}"></option>{% endfor %}</datalist>{% endif %}

@@ -1,0 +1,59 @@
+fr:
+  document:
+    module:
+      name: "Justificatifs"
+    permissions:
+      receipt:
+        read: "Voir les justificatifs à traiter"
+        write: "Déposer, compléter, rattacher et saisir les justificatifs"
+    menu:
+      document_inbox: "Justificatifs"
+    sources:
+      photo: "Photo"
+      file: "Fichier"
+      einvoice: "Facture électronique"
+    statuses:
+      to_process: "À traiter"
+      attached: "Rattaché"
+      discarded: "Écarté"
+    kinds:
+      invoice: "Facture"
+      ticket: "Ticket de caisse"
+      expense_report: "Note de frais"
+      other: "Autre"
+    errors:
+      receipt:
+        content:
+          empty: "Le fichier est vide."
+          too_large: "Le fichier dépasse %{max} Mio."
+          unsupported: "Format non pris en charge : déposez une photo (JPEG, PNG, HEIC) ou un PDF."
+        source:
+          invalid: "Source inconnue : %{value}."
+        supplier_code:
+          unknown: "Aucune fiche ne porte le code %{value}."
+        supplier_name:
+          too_long: "Le fournisseur ne peut dépasser %{max} caractères."
+        amount:
+          negative: "Le montant ne peut pas être négatif."
+          too_precise: "Le montant ne peut avoir plus de %{max} décimales."
+          too_large: "Le montant est trop grand."
+        currency_code:
+          invalid: "Code de devise invalide : %{value}."
+        kind:
+          invalid: "Nature inconnue : %{value}."
+        note:
+          too_long: "La note ne peut dépasser %{max} caractères."
+        reference:
+          too_long: "La référence ne peut dépasser %{max} caractères."
+        external_ref:
+          blank: "L'identifiant de la facture chez la plateforme est obligatoire."
+          too_long: "L'identifiant de la facture chez la plateforme ne peut dépasser %{max} caractères."
+        status:
+          not_to_process: "Ce justificatif n'est plus à traiter."
+          already_to_process: "Ce justificatif est déjà à traiter."
+        entry_id:
+          unknown: "Écriture introuvable."
+          cancelled: "L'écriture %{value} est annulée : rattachez le justificatif à une écriture en vigueur."
+        invoice_id:
+          unknown: "Facture introuvable."
+        module_inactive: "Le module %{module} n'est pas actif."

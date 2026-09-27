@@ -1,0 +1,9 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Image d'un justificatif (variable receipt) : version réduite produite par le serveur, sinon lien vers l'original (PDF, format que le serveur n'a pas pu réduire). #}<figure class="pd-doc-image">
+  {% if receipt.preview_url %}<a href="{{ receipt.original_url }}" target="_blank" rel="noopener"><img src="{{ receipt.preview_url }}" alt="{{ receipt.alt }}"></a>
+  {% else %}<a class="pd-doc-noimg pd-doc-noimg-large" href="{{ receipt.original_url }}" target="_blank" rel="noopener">{% include "ui/_icon.html" with name="file-text" %}<span>{% translate "document_ui.show.open_original" %}</span></a>{% endif %}
+  <figcaption class="buttons are-small">
+    <a class="button is-small" href="{{ receipt.original_url }}" target="_blank" rel="noopener">{% include "ui/_icon.html" with name="file-text" %}<span>{% translate "document_ui.show.original" %}</span></a>
+    <a class="button is-small" href="{{ receipt.original_url }}?download=1">{% include "ui/_icon.html" with name="download" %}<span>{% translate "document_ui.show.download" %}</span></a>
+    {% if receipt.data_url %}<a class="button is-small" href="{{ receipt.data_url }}">{% include "ui/_icon.html" with name="download" %}<span>{% translate "document_ui.show.data" %}</span></a>{% endif %}
+  </figcaption>
+</figure>

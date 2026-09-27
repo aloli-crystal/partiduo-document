@@ -1,0 +1,13 @@
+# Configuration d'Ameba pour partiduo-document.
+Globs:
+  - "**/*.cr"
+  - "!lib"
+
+Excluded:
+  - lib/
+
+# Objets exposés aux gabarits Marten : un attribut booléen doit s'appeler sans
+# `?` pour être lu dans un gabarit (D-UI-016 de l'interface).
+Naming/QueryBoolMethods:
+  Excluded:
+    - ui/bulma/receipt_form.cr

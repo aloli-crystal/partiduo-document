@@ -1,0 +1,51 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Boîte « Justificatifs à traiter » (maquette « Justificatifs », ADR-005 D8) : onglets par statut, prise de vue (appareil photo du téléphone, sans application) et dépôt par glisser-déposer, compléments facultatifs, cartes. Formulaire multipart ordinaire, utilisable sans JavaScript ; document/js/receipts.js n'ajoute que l'aperçu et le glisser-déposer. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'document/css/receipts.css' %}"><script src="{% asset 'document/js/receipts.js' %}" defer></script>{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }} <span class="pd-ext">DOCUMENT</span>{% endblock heading %}
+{% block content %}
+<nav class="pd-tabs pd-doc-tabs" aria-label="{% translate 'document_ui.tabs.label' %}">{% for tab in tabs %}<a href="{{ tab.url }}"{% if tab.current %} aria-current="page"{% endif %}>{{ tab.label }} <span class="pd-doc-n">({{ tab.count }})</span></a>{% endfor %}</nav>
+
+{% if can_write %}
+<section class="pd-panel pd-doc-capture-panel" aria-labelledby="pd-doc-capture-title">
+  <h2 class="is-sr-only" id="pd-doc-capture-title">{% translate "document_ui.capture.title" %}</h2>
+  <form method="post" action="{% url 'document:capture' %}" enctype="multipart/form-data" data-doc-capture novalidate>
+    {% csrf_input %}
+    {% include "ui/_errors.html" with messages=errors.base, id="pd-doc-base-errors" %}
+    <div class="pd-doc-capture">
+      <label class="button is-primary is-medium pd-touch pd-doc-cam" for="pd-doc-file">{% include "ui/_icon.html" with name="camera" %}<span>{% translate "document_ui.capture.photo" %}</span></label>
+      <input class="pd-doc-file" type="file" id="pd-doc-file" name="file" accept="image/*,application/pdf" capture="environment" aria-describedby="pd-doc-file-help{% if errors.file %} pd-doc-file-errors{% endif %}"{% if errors.file %} aria-invalid="true"{% endif %}>
+      <label class="pd-doc-drop" for="pd-doc-file" data-doc-drop>{% include "ui/_icon.html" with name="paperclip" %} <span>{% translate "document_ui.capture.drop" %}</span></label>
+      <p class="help pd-doc-full" id="pd-doc-file-help">{% translate "document_ui.capture.help" max: max_mb %}</p>
+      {% include "ui/_errors.html" with messages=errors.file, id="pd-doc-file-errors" %}
+    </div>
+    <div class="pd-doc-quick" data-doc-quick>
+      <figure class="pd-doc-preview" data-doc-preview hidden><img alt="{% translate 'document_ui.capture.preview_alt' %}" data-doc-preview-img><figcaption class="is-size-7 pd-muted" data-doc-preview-name></figcaption></figure>
+      {% include "document/_details_fields.html" %}
+      <div class="buttons pd-doc-full">
+        <button class="button is-primary pd-touch" type="submit">{% include "ui/_icon.html" with name="check" %}<span>{% translate "document_ui.capture.keep" %}</span></button>
+        <button class="button pd-touch" type="reset" data-doc-cancel>{% translate "ui.forms.cancel" %}</button>
+      </div>
+    </div>
+  </form>
+</section>
+{% endif %}
+
+<section class="pd-panel" aria-labelledby="pd-doc-list-title">
+  <header>
+    <h2 id="pd-doc-list-title">{% for tab in tabs %}{% if tab.current %}{{ tab.label }}{% endif %}{% endfor %}</h2>
+    <form method="get" action="{% url 'document:index' %}" class="pd-doc-search" role="search">
+      <input type="hidden" name="status" value="{{ status }}">
+      <label class="is-sr-only" for="pd-doc-q">{% translate "document_ui.index.search" %}</label>
+      <input class="input is-small" type="search" id="pd-doc-q" name="q" value="{{ search }}" placeholder="{% translate 'document_ui.index.search' %}">
+      <button class="button is-small" type="submit">{% include "ui/_icon.html" with name="search" %}<span class="is-sr-only">{% translate "document_ui.index.search" %}</span></button>
+    </form>
+  </header>
+  {% if cards %}
+  <div class="pd-doc-cards">{% for item in cards %}{% include "document/_card.html" %}{% endfor %}</div>
+  {% else %}
+  <div class="pd-body"><p class="pd-muted" data-doc-empty>{% translate "document_ui.index.empty" %}</p></div>
+  {% endif %}
+</section>
+<p class="is-size-7 pd-muted">{% translate "document_ui.index.proof_note" %}</p>
+{% endblock content %}

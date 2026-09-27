@@ -1,0 +1,117 @@
+= partiduo-document — justificatifs à traiter
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+*Partiduo* est le portage en Crystal de https://noalyss.eu[NOALYSS], logiciel
+libre de comptabilité créé et maintenu par *Dany De Bontridder*. Partiduo
+n'est pas un projet officiel NOALYSS.
+
+Ce dépôt est l'extension `DOCUMENT` de Partiduo, successeur de l'extension
+`noalyss_document` de NOALYSS (entrées `NDER`, saisie, et `NDC`, chargement
+depuis un téléphone). Elle réunit dans une *boîte unique « Justificatifs à
+traiter »* (ADR-005 D8) :
+
+* les photos prises avec le téléphone (bouton « Photographier un
+  justificatif », qui ouvre directement l'appareil photo, sans application) ;
+* les fichiers déposés sur ordinateur par glisser-déposer (PDF, JPEG, PNG,
+  HEIC converti) ;
+* les factures reçues par la plateforme agréée, que `partiduo-einvoicing`
+  y dépose par l'API publique `Document::Api.receive` (ADR-004 D9).
+
+La spécification est dans `../partiduo-docs/` (ADR-003 contrat d'extension,
+ADR-004 D9, ADR-005 D4 et D8, ADR-006 D3 et D5). Les décisions propres à ce
+dépôt sont consignées dans `../partiduo-app/DECISIONS.adoc` (préfixe
+`D-DOC-`). Référence du contrat : link:doc/api/document.adoc[].
+
+== Fonctions
+
+[cols="1,3",options="header"]
+|===
+|Fonction |Dans DOCUMENT
+
+|Stockage
+|Pièces jointes du socle (`Partiduo::Api::Core.store_attachment`) : l'original
+tel quel ; vignette (320 px) et version réduite (1 600 px) en JPEG produites
+par le serveur (libvips, sinon ImageMagick), conversion des photos HEIC.
+
+|Compléments facultatifs
+|Fournisseur (texte libre ou fiche du socle), montant TTC, date, nature
+(facture, ticket de caisse, note de frais, autre), numéro de facture, note.
+Rien n'est obligatoire.
+
+|Statuts
+|À traiter, rattaché, écarté. Doublons signalés (même contenu ; même
+fournisseur, date et montant ; écriture d'achat déjà enregistrée).
+
+|« Saisir l'écriture »
+|Comptabilité active : écriture d'achat préremplie (journal, date,
+fournisseur, hors taxe déduit du TTC au taux normal), saisie avec l'image à
+côté ; l'écriture porte l'original en pièce jointe et la source
+`document:<id>`. L'abonnement à `entry.posted` fait passer le justificatif
+en « Rattaché » ; `entry.cancelled` le remet à traiter.
+
+|« Rattacher »
+|À une écriture existante (Comptabilité) ou à une facture émise
+(Facturation).
+
+|Compteur
+|Nombre de justificatifs à traiter dans le menu « Saisie » et dans « À
+traiter » du tableau de bord.
+
+|Valeur probante
+|Copie de travail : l'original papier est à conserver. La numérisation
+probante (`pdf-a`, `pdf-signature`) et la lecture automatique (OCR) sont
+hors périmètre.
+|===
+
+== Organisation
+
+[source]
+----
+src/
+├── partiduo-document.cr       # point d'entrée du shard
+├── partiduo-document/cli.cr   # migrations : require "partiduo-document/cli"
+└── document/                  # métier (application Marten « document »)
+    ├── app.cr, manifest.cr    # code DOCUMENT, permissions, menu, abonnements
+    ├── models/receipt.cr      # table document_receipt
+    ├── migrations/
+    ├── services/              # règles, rendu des vignettes, abonnements (interne)
+    ├── api/                   # contrat public Document::Api
+    └── locales/               # fr, en, nl
+ui/
+└── bulma/                     # interface pour partiduo-ui-bulma (application « document_ui »)
+    ├── bulma.cr               # routes sous /ext/DOCUMENT/, compteur du menu
+    ├── handlers/, templates/document/, assets/document/, locales/
+----
+
+== Composer une distribution
+
+[source,crystal]
+----
+require "partiduo-ui-bulma/partiduo_ui"
+require "partiduo-document"
+require "partiduo-document/ui/bulma"
+# installed_apps += Document::INSTALLED_APPS + Document::Ui::INSTALLED_APPS
+# ligne de commande : require "partiduo-document/cli"
+----
+
+Le serveur a besoin de `vipsthumbnail` (libvips avec libheif et poppler) ou
+de `magick` (ImageMagick 7) pour les vignettes ;
+`PARTIDUO_DOCUMENT_RENDERER=vips|magick|none` force le choix. Sans outil, les
+justificatifs sont conservés sans vignette.
+
+== Commandes
+
+[source,sh]
+----
+cd prod-crystal/partiduo/partiduo-document
+SKIP_MARTEN_CLI_PRECOMPILATION=1 shards install
+createdb --encoding=UTF8 partiduo_test_<agent>
+DATABASE_URL='postgres:///partiduo_test_<agent>?host=/tmp' crystal spec
+crystal tool format src spec ui config && bin/ameba
+----
+
+== Licence
+
+AGPL-3.0-or-later (voir `LICENSE`).

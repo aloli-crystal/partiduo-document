@@ -1,0 +1,59 @@
+en:
+  document:
+    module:
+      name: "Receipts"
+    permissions:
+      receipt:
+        read: "View receipts to process"
+        write: "Upload, complete, link and post receipts"
+    menu:
+      document_inbox: "Receipts"
+    sources:
+      photo: "Photo"
+      file: "File"
+      einvoice: "E-invoice"
+    statuses:
+      to_process: "To process"
+      attached: "Linked"
+      discarded: "Discarded"
+    kinds:
+      invoice: "Invoice"
+      ticket: "Till receipt"
+      expense_report: "Expense report"
+      other: "Other"
+    errors:
+      receipt:
+        content:
+          empty: "The file is empty."
+          too_large: "The file exceeds %{max} MiB."
+          unsupported: "Unsupported format: upload a photo (JPEG, PNG, HEIC) or a PDF."
+        source:
+          invalid: "Unknown source: %{value}."
+        supplier_code:
+          unknown: "No card has the code %{value}."
+        supplier_name:
+          too_long: "The supplier cannot exceed %{max} characters."
+        amount:
+          negative: "The amount cannot be negative."
+          too_precise: "The amount cannot have more than %{max} decimals."
+          too_large: "The amount is too large."
+        currency_code:
+          invalid: "Invalid currency code: %{value}."
+        kind:
+          invalid: "Unknown type: %{value}."
+        note:
+          too_long: "The note cannot exceed %{max} characters."
+        reference:
+          too_long: "The reference cannot exceed %{max} characters."
+        external_ref:
+          blank: "The platform's invoice identifier is required."
+          too_long: "The platform's invoice identifier cannot exceed %{max} characters."
+        status:
+          not_to_process: "This receipt is no longer to be processed."
+          already_to_process: "This receipt is already to be processed."
+        entry_id:
+          unknown: "Entry not found."
+          cancelled: "Entry %{value} is cancelled: link the receipt to a valid entry."
+        invoice_id:
+          unknown: "Invoice not found."
+        module_inactive: "The %{module} module is not active."
