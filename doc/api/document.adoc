@@ -49,14 +49,23 @@ nature `invoice`.
 |`reopen(actor, id)` |`discarded` ou `attached` → `to_process` (l'écriture n'est pas modifiée)
 |`link_entry(actor, id, entry_id)` |rattache à une écriture en vigueur (Comptabilité active)
 |`link_invoice(actor, id, invoice_id)` |rattache à une facture, un acompte ou un avoir émis (Facturation active)
-|`post_purchase(actor, id, Accounting::DocumentInput) : Result(EntryView)`
-|écriture d'achat avec l'original en pièce jointe et la source
-`document:<id>` ; le justificatif passe en `attached` par l'abonnement à
-`entry.posted`, dans la même transaction
+|`post_purchase(actor, id, Accounting::ReceivedInvoiceInput) : Result(ReceivedInvoiceView)`
+|facture d'achat reçue hors plateforme (`post_received_invoice` du cœur,
+ADR-004 D9) : numéro de la facture du fournisseur obligatoire, contrôle de
+doublon commun avec les factures reçues par la plateforme, origine
+`OffPlatform`, l'original en pièce jointe et la source `document:<id>` ; le
+justificatif passe en `attached` par l'abonnement à `entry.posted`, dans la
+même transaction
 |===
 
+Un justificatif de source `einvoice` (facture reçue par la plateforme) se
+traite dans l'écran de l'extension de facturation électronique :
+`post_purchase`, `check_purchase`, `link_entry` et `link_invoice` le
+refusent (`document.errors.receipt.einvoice`, D-DOC-012).
+
 Requêtes de contrôle : `check_capture`, `check_details`,
-`check_purchase(actor, id, DocumentInput) : Result(EntryDraftView)`.
+`check_purchase(actor, id, ReceivedInvoiceInput) : Result(EntryDraftView)`
+(doublon compris).
 
 == Requêtes
 
@@ -71,7 +80,7 @@ Requêtes de contrôle : `check_capture`, `check_details`,
 |`file(actor, id, variant) : FileView` |`original`, `preview`, `thumbnail`, `data`
 |`duplicates(actor, id) : DuplicatesView` |doublons possibles (justificatifs, écritures d'achat)
 |`candidates(actor, id, search) : Array(CandidateView)` |écritures et factures auxquelles rattacher
-|`purchase_prefill(actor, id, vat_rate : String?) : PrefillView` |écriture d'achat préremplie ; `vat_rate` `nil` : taux normal du dossier, `""` : sans TVA
+|`purchase_prefill(actor, id, vat_rate : String?) : PrefillView` |écriture d'achat préremplie ; `vat_rate` `nil` : taux normal du dossier, `""` : sans TVA ; `number` (référence du justificatif) et `invoice_date` proposés pour la facture reçue
 |===
 
 == Événements

@@ -80,6 +80,7 @@ nl:
         entry: "Boeking"
         invoice: "Factuur"
     entry:
+      invoice_number: "Factuurnummer van de leverancier"
       title: "Boeking invoeren"
       photo_note: "De afbeelding blijft aan de boeking gekoppeld. Bewaar het papieren origineel."
       supplier_hint: "Leverancier op het bewijsstuk: %{supplier}. Kies de fiche."

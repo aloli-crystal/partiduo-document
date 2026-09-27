@@ -56,4 +56,5 @@ en:
           cancelled: "Entry %{value} is cancelled: link the receipt to a valid entry."
         invoice_id:
           unknown: "Invoice not found."
+        einvoice: "Invoice received through the approved platform: process it from the “Received e-invoices” screen."
         module_inactive: "The %{module} module is not active."

@@ -56,4 +56,5 @@ fr:
           cancelled: "L'écriture %{value} est annulée : rattachez le justificatif à une écriture en vigueur."
         invoice_id:
           unknown: "Facture introuvable."
+        einvoice: "Facture reçue par la plateforme agréée : traitez-la depuis l'écran « Factures électroniques reçues »."
         module_inactive: "Le module %{module} n'est pas actif."

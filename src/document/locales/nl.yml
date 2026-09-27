@@ -56,4 +56,5 @@ nl:
           cancelled: "Boeking %{value} is geannuleerd: koppel het bewijsstuk aan een geldige boeking."
         invoice_id:
           unknown: "Factuur niet gevonden."
+        einvoice: "Factuur ontvangen via het erkende platform: verwerk ze vanuit het scherm “Ontvangen elektronische facturen”."
         module_inactive: "De module %{module} is niet actief."

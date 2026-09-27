@@ -80,6 +80,7 @@ en:
         entry: "Entry"
         invoice: "Invoice"
     entry:
+      invoice_number: "Supplier invoice number"
       title: "Post entry"
       photo_note: "The image stays attached to the entry. Keep the paper original."
       supplier_hint: "Supplier stated on the receipt: %{supplier}. Choose their card."

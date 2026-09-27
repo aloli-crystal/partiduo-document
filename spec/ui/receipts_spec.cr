@@ -156,18 +156,26 @@ describe "Boîte « Justificatifs à traiter » sous /ext/DOCUMENT/ (ADR-005 D8)
     page.should contain(%(value="Orange Business · FB-2026-0918-4471"))
     page.should contain(%(hx-post="/ext/DOCUMENT/#{receipt.id}/entry/check"))
     page.should contain("L'image reste attachée à l'écriture.")
+    # Numéro de la facture du fournisseur proposé : la référence du justificatif.
+    page.should contain(%(name="invoice_number" value="FB-2026-0918-4471"))
 
     browser.get("/ext/DOCUMENT/#{receipt.id}/entry?vat_rate=").html.should contain(%(name="line-0-amount" id="pd-l0-amount" value="86,40"))
 
     values = {"ledger_id" => Books.ledger("A01").id.to_s, "date" => "24/09/2026", "receipt" => "", "third_party" => "FOUR-ORANGE",
               "due_date" => "", "label" => "Orange · fibre", "line-0-account" => "603", "line-0-label" => "Fibre",
-              "line-0-amount" => "72", "line-0-vat_rate" => "NOR"}
+              "line-0-amount" => "72", "line-0-vat_rate" => "NOR", "invoice_number" => "FB-2026-0918-4471"}
     check = browser.post("/ext/DOCUMENT/#{receipt.id}/entry/check", values, {"HX-Request" => "true"}).html
     check.should contain("86,40")
     check.should contain(%(<span class="pd-state ok">Équilibrée</span>))
     check.should_not contain("data-doc-gap")
     gap = browser.post("/ext/DOCUMENT/#{receipt.id}/entry/check", values.merge({"line-0-amount" => "70"}), {"HX-Request" => "true"}).html
     gap.should contain("Écart de 2,40")
+
+    # Numéro vide : refusé sous son champ, rien n'est enregistré.
+    missing = browser.post("/ext/DOCUMENT/#{receipt.id}/entry", values.merge({"invoice_number" => ""}))
+    missing.status.should eq(422)
+    missing.html.should contain(%(id="pd-doc-invoice-number-errors"))
+    Api.receipt(S.admin, receipt.id).to_process?.should be_true
 
     response = browser.post("/ext/DOCUMENT/#{receipt.id}/entry", values)
     response.status.should eq(302)
@@ -177,6 +185,7 @@ describe "Boîte « Justificatifs à traiter » sous /ext/DOCUMENT/ (ADR-005 D8)
     entry.attachment_id.should eq(receipt.original_attachment_id)
     html = browser.get("/ext/DOCUMENT/").html
     html.should contain("Écriture #{entry.receipt} enregistrée")
+    Acc.received_invoice_for_entry(Books.system, entry.id).try(&.off_platform?).should be_true
     browser.get("/ext/DOCUMENT/?status=attached").html.should contain("Rattaché à #{entry.receipt}")
     # Déjà rattaché : l'écran de saisie renvoie à la consultation.
     browser.get("/ext/DOCUMENT/#{receipt.id}/entry").status.should eq(302)

@@ -36,11 +36,18 @@ module Document
           (module_active?("INVOICING") && can?("invoicing.invoice.read")))
       end
 
+      # Justificatif traité ici : « À traiter » et pas une facture reçue par
+      # la plateforme, qui se traite dans l'écran de l'extension de
+      # facturation électronique (D-DOC-012).
+      def processable?(receipt : Api::ReceiptView) : Bool
+        receipt.to_process? && receipt.source != "einvoice"
+      end
+
       def card(receipt : Api::ReceiptView) : ReceiptCard
         label, url = linked(receipt)
         ReceiptCard.new(receipt, fmt,
-          entry_url: receipt.to_process? && can_post? ? Ui.url("entry", receipt.id) : nil,
-          link_url: receipt.to_process? && can_link? ? Ui.url("link", receipt.id) : nil,
+          entry_url: processable?(receipt) && can_post? ? Ui.url("entry", receipt.id) : nil,
+          link_url: processable?(receipt) && can_link? ? Ui.url("link", receipt.id) : nil,
           linked_label: label, linked_url: url)
       end
 
@@ -293,7 +300,9 @@ module Document
     # puis rattachement.
     class LinkHandler < Handler
       def get
-        show(Api.receipt(current.actor, receipt_id), nil)
+        receipt = Api.receipt(current.actor, receipt_id)
+        return go(Ui.url("show", receipt.id)) if receipt.source == "einvoice"
+        show(receipt, nil)
       end
 
       def post

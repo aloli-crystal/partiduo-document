@@ -37,6 +37,13 @@ private def purchase(prefill : Api::PrefillView, account : String = "603") : Acc
     third_party: prefill.third_party, label: prefill.label, lines: lines)
 end
 
+# Facture reçue hors plateforme : l'écriture et le numéro proposé (référence
+# du justificatif).
+private def received(prefill : Api::PrefillView, account : String = "603") : Acc::ReceivedInvoiceInput
+  Acc::ReceivedInvoiceInput.new(document: purchase(prefill, account), number: prefill.number,
+    invoice_date: prefill.invoice_date)
+end
+
 describe "Justificatifs : « Saisir l'écriture » et rattachement (ADR-005 D8)" do
   it "préremplit une écriture d'achat : journal, date, fournisseur, taux normal, hors taxe déduit du TTC" do
     books
@@ -47,6 +54,7 @@ describe "Justificatifs : « Saisir l'écriture » et rattachement (ADR-005 D8)"
     prefill.third_party.should eq("FOUR-ORANGE")
     prefill.label.should eq("Orange Business · FB-2026-0918-4471")
     prefill.amount_including_vat.should eq(S.d("86.40"))
+    {prefill.number, prefill.invoice_date}.should eq({"FB-2026-0918-4471", S.date("2026-09-24")})
     prefill.lines.size.should eq(1)
     line = prefill.lines.first
     line.vat_rate.should eq("NOR")
@@ -69,15 +77,19 @@ describe "Justificatifs : « Saisir l'écriture » et rattachement (ADR-005 D8)"
   it "enregistre l'écriture avec l'original en pièce jointe ; le justificatif passe en « Rattaché »" do
     books
     receipt = orange_receipt
-    input = purchase(Api.purchase_prefill(admin, receipt.id))
+    input = received(Api.purchase_prefill(admin, receipt.id))
     draft = Api.check_purchase(admin, receipt.id, input).value!
     draft.total_including_vat.should eq(S.d("86.40"))
     Api.receipt(admin, receipt.id).to_process?.should be_true
 
-    entry = Api.post_purchase(admin, receipt.id, input).value!
-    entry.attachment_id.should eq(receipt.original_attachment_id)
+    # Facture reçue hors plateforme (ADR-004 D9) : numéro, origine, pièce.
+    invoice = Api.post_purchase(admin, receipt.id, input).value!
+    {invoice.number, invoice.off_platform?, invoice.total_amount}.should eq({"FB-2026-0918-4471", true, S.d("86.40")})
+    invoice.attachment_id.should eq(receipt.original_attachment_id)
+    entry = Acc.entry(admin, invoice.entry_id)
     entry.source.should eq("document:#{receipt.id}")
     entry.amount.should eq(S.d("86.40"))
+    Acc.received_invoice_for_entry(admin, entry.id).try(&.id).should eq(invoice.id)
 
     attached = Api.receipt(admin, receipt.id)
     attached.status.should eq("attached")
@@ -94,16 +106,20 @@ describe "Justificatifs : « Saisir l'écriture » et rattachement (ADR-005 D8)"
   it "laisse le justificatif à traiter si l'écriture est refusée" do
     books
     receipt = orange_receipt
-    input = purchase(Api.purchase_prefill(admin, receipt.id)).copy_with(third_party: "INCONNU")
+    input = received(Api.purchase_prefill(admin, receipt.id))
+    input = input.copy_with(document: input.document.copy_with(third_party: "INCONNU"))
     Api.post_purchase(admin, receipt.id, input).failure?.should be_true
+    # Numéro de la facture obligatoire.
+    Api.post_purchase(admin, receipt.id, received(Api.purchase_prefill(admin, receipt.id)).copy_with(number: " "))
+      .error_keys.should eq(["accounting.errors.received_invoice.number.blank"])
     Api.receipt(admin, receipt.id).to_process?.should be_true
   end
 
   it "revient « À traiter » quand l'écriture est extournée" do
     books
     receipt = orange_receipt
-    entry = Api.post_purchase(admin, receipt.id, purchase(Api.purchase_prefill(admin, receipt.id))).value!
-    Acc.cancel_entry(admin, Acc::CancelEntryInput.new(entry.id)).success?.should be_true
+    invoice = Api.post_purchase(admin, receipt.id, received(Api.purchase_prefill(admin, receipt.id))).value!
+    Acc.cancel_entry(admin, Acc::CancelEntryInput.new(invoice.entry_id)).success?.should be_true
     reopened = Api.receipt(admin, receipt.id)
     reopened.status.should eq("to_process")
     reopened.entry_id.should be_nil

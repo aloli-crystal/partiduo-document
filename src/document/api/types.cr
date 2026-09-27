@@ -164,6 +164,11 @@ module Document
       third_party : String,
       label : String,
       lines : Array(PrefillLineView),
-      amount_including_vat : BigDecimal?
+      amount_including_vat : BigDecimal?,
+      # Numéro de la facture du fournisseur proposé (référence du
+      # justificatif), exigé par `post_purchase` (ADR-004 D9).
+      number : String = "",
+      # Date de la facture (celle du justificatif), `nil` si inconnue.
+      invoice_date : Time? = nil
   end
 end

@@ -1,4 +1,4 @@
-{# SPDX-License-Identifier: AGPL-3.0-or-later. « Saisir l'écriture » depuis un justificatif (maquette : saisie avec l'image à côté, ADR-005 D8) : image du justificatif (en haut sur téléphone), écriture d'achat préremplie reprise de la saisie de l'interface (ui/entries/_line.html, ui/entries/_check.html), retour instantané par HTMX, formulaire ordinaire sans JavaScript. #}{% extend "ui/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later. « Saisir l'écriture » depuis un justificatif (maquette : saisie avec l'image à côté, ADR-005 D8) : image du justificatif (en haut sur téléphone), numéro de la facture du fournisseur (obligatoire, facture reçue hors plateforme), écriture d'achat préremplie reprise de la saisie de l'interface (ui/entries/_line.html, ui/entries/_check.html), retour instantané par HTMX, formulaire ordinaire sans JavaScript. #}{% extend "ui/base.html" %}
 {% block title %}{{ title }}{% endblock title %}
 {% block scripts %}<link rel="stylesheet" href="{% asset 'document/css/receipts.css' %}"><script src="{% asset 'ui/js/opal/runtime.js' %}" defer></script>
     <script src="{% asset 'ui/js/opal/entry.js' %}" defer></script>{% endblock scripts %}
@@ -49,6 +49,9 @@
           <div class="field"><label class="label" for="pd-e-receipt">{% translate "ui.entries.receipt" %}</label>
             <input class="input pd-mono" id="pd-e-receipt" name="receipt" value="{{ form.receipt }}" placeholder="{{ form.receipt_placeholder }}"{% if form.receipt_errors %} aria-invalid="true" aria-describedby="pd-e-receipt-errors"{% endif %}>
             {% include "ui/_errors.html" with messages=form.receipt_errors, id="pd-e-receipt-errors" %}</div>
+          <div class="field"><label class="label" for="pd-doc-invoice-number">{% translate "document_ui.entry.invoice_number" %}<span class="pd-required" aria-hidden="true"> *</span></label>
+            <input class="input pd-mono" id="pd-doc-invoice-number" name="invoice_number" value="{{ invoice_number }}" maxlength="100" required{% if invoice_number_errors %} aria-invalid="true" aria-describedby="pd-doc-invoice-number-errors"{% endif %}>
+            {% include "ui/_errors.html" with messages=invoice_number_errors, id="pd-doc-invoice-number-errors" %}</div>
           <div class="field pd-wide"><label class="label" for="pd-e-third">{% translate "ui.entries.supplier" %}</label>
             <input class="input" id="pd-e-third" name="third_party" value="{{ form.third_party }}" list="pd-dl-thirds" autocomplete="off" spellcheck="false"{% if form.third_party_errors %} aria-invalid="true" aria-describedby="pd-e-third-errors"{% endif %} hx-get="{% url 'cards:complete' %}?kind=supplier" hx-trigger="input changed delay:150ms" hx-target="#pd-dl-thirds" hx-sync="this:replace">
             {% include "ui/_errors.html" with messages=form.third_party_errors, id="pd-e-third-errors" %}</div>

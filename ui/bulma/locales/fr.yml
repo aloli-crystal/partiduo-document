@@ -80,6 +80,7 @@ fr:
         entry: "Écriture"
         invoice: "Facture"
     entry:
+      invoice_number: "N° de la facture du fournisseur"
       title: "Saisir l'écriture"
       photo_note: "L'image reste attachée à l'écriture. L'original papier est à conserver."
       supplier_hint: "Fournisseur indiqué sur le justificatif : %{supplier}. Choisissez sa fiche."

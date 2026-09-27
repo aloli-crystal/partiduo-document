@@ -46,9 +46,7 @@ module Document
       authorize_write!(actor)
       errors = [] of FieldError
       source = input.source
-      if source && !{"photo", "file"}.includes?(source)
-        errors << FieldError.new("source", "document.errors.receipt.source.invalid", {"value" => source})
-      end
+      check_source(source, errors)
       content_type = check_content(input.content, Receipts::CAPTURE_TYPES, "content", errors)
       details = Receipts.check_details(actor, input.details, errors)
       return Result(ReceiptView).failure(errors) unless errors.empty? && content_type
@@ -61,6 +59,7 @@ module Document
     def self.check_capture(actor : Actor, input : CaptureInput) : Result(Nil)
       authorize_write!(actor)
       errors = [] of FieldError
+      check_source(input.source, errors)
       check_content(input.content, Receipts::CAPTURE_TYPES, "content", errors)
       Receipts.check_details(actor, input.details, errors)
       errors.empty? ? Result(Nil).success(nil) : Result(Nil).failure(errors)
@@ -150,6 +149,7 @@ module Document
       Transaction.run do
         receipt = Receipts.lock!(id)
         next status_error(receipt, "not_to_process") unless receipt.status == "to_process"
+        next einvoice_error(receipt) if einvoice?(receipt)
         next module_error("entry_id", "ACCOUNTING") unless Partiduo::Modules.active?("ACCOUNTING")
         entry = begin
           Acc.entry(actor, entry_id)
@@ -172,6 +172,7 @@ module Document
       Transaction.run do
         receipt = Receipts.lock!(id)
         next status_error(receipt, "not_to_process") unless receipt.status == "to_process"
+        next einvoice_error(receipt) if einvoice?(receipt)
         next module_error("invoice_id", "INVOICING") unless Partiduo::Modules.active?("INVOICING")
         document = begin
           Partiduo::Api::Invoicing.document(actor, invoice_id)
@@ -211,7 +212,9 @@ module Document
              end
       lines = [] of PrefillLineView
       total = receipt.amount
-      if total && rate && !rate.fraction.zero?
+      # Autoliquidation : la facture du fournisseur est hors taxe, la TVA
+      # est calculée par l'acheteur (rien à déduire du montant).
+      if total && rate && !rate.fraction.zero? && !rate.reverse_charge
         net = (total / (BigDecimal.new(1) + rate.fraction)).round(2, mode: :ties_away)
         lines << PrefillLineView.new(amount: net, vat_rate: rate.code, vat_amount: total - net, label: label)
       else
@@ -221,30 +224,43 @@ module Document
       PrefillView.new(
         ledger_id: ledger.try(&.id), date: receipt.date || Partiduo::Api::Core.today, third_party: receipt.supplier_code,
         label: label.empty? ? receipt.filename : label, lines: lines, amount_including_vat: total,
+        number: receipt.reference, invoice_date: receipt.date,
       )
     end
 
     # Contrôle de l'écriture d'achat avant enregistrement (même règle que
-    # `post_purchase`, pour les totaux instantanés).
-    def self.check_purchase(actor : Actor, id : Int64, input : Acc::DocumentInput) : Result(Acc::EntryDraftView)
+    # `post_purchase`, pour les totaux instantanés et le doublon).
+    def self.check_purchase(actor : Actor, id : Int64, input : Acc::ReceivedInvoiceInput) : Result(Acc::EntryDraftView)
       authorize_write!(actor, attachments: false)
       receipt = Receipts.find!(id)
-      Acc.check_document(actor, with_receipt(input, receipt))
+      if einvoice?(receipt)
+        return Result(Acc::EntryDraftView).failure(FieldError.base("document.errors.receipt.einvoice"))
+      end
+      Acc.check_received_invoice(actor, received(input, receipt))
     end
 
-    # Enregistre l'écriture d'achat d'un justificatif « À traiter » : la
-    # pièce jointe de l'écriture est l'original du justificatif, sa source
-    # `document:<id>`. L'abonnement à `entry.posted` fait passer le
-    # justificatif en « Rattaché », dans la même transaction. Permissions de
-    # la Comptabilité vérifiées par `post_purchase`.
-    def self.post_purchase(actor : Actor, id : Int64, input : Acc::DocumentInput) : Result(Acc::EntryView)
+    # Enregistre la facture d'achat d'un justificatif « À traiter » par le
+    # service des factures reçues du cœur (`post_received_invoice`, ADR-004
+    # D9) : écriture du journal d'achats, facture marquée « reçue hors
+    # plateforme », numéro obligatoire, contrôle de doublon commun avec les
+    # factures reçues par la plateforme. La pièce jointe de l'écriture est
+    # l'original du justificatif, sa source `document:<id>` ; l'abonnement à
+    # `entry.posted` fait passer le justificatif en « Rattaché », dans la
+    # même transaction. Une facture reçue par la plateforme (source
+    # `einvoice`) se traite depuis l'écran de l'extension de facturation
+    # électronique (`document.errors.receipt.einvoice`, D-DOC-012).
+    # Permissions de la Comptabilité vérifiées par `post_received_invoice`.
+    def self.post_purchase(actor : Actor, id : Int64, input : Acc::ReceivedInvoiceInput) : Result(Acc::ReceivedInvoiceView)
       authorize_write!(actor, attachments: false)
       Transaction.run do
         receipt = Receipts.lock!(id)
         unless receipt.status == "to_process"
-          next Result(Acc::EntryView).failure(FieldError.base("document.errors.receipt.status.not_to_process"))
+          next Result(Acc::ReceivedInvoiceView).failure(FieldError.base("document.errors.receipt.status.not_to_process"))
         end
-        Acc.post_purchase(actor, with_receipt(input, receipt))
+        if einvoice?(receipt)
+          next Result(Acc::ReceivedInvoiceView).failure(FieldError.base("document.errors.receipt.einvoice"))
+        end
+        Acc.post_received_invoice(actor, received(input, receipt))
       end
     end
 
@@ -387,6 +403,12 @@ module Document
       rows
     end
 
+    # Source d'un dépôt : `photo`, `file` ou `nil` (déduite du contenu).
+    private def self.check_source(source : String?, errors : Array(FieldError)) : Nil
+      return if source.nil? || {"photo", "file"}.includes?(source)
+      errors << FieldError.new("source", "document.errors.receipt.source.invalid", {"value" => source})
+    end
+
     # Type reconnu d'un contenu parmi `allowed`, ou erreur sous `field`.
     private def self.check_content(bytes : Bytes, allowed : Array(String), field : String,
                                    errors : Array(FieldError)) : String?
@@ -445,6 +467,22 @@ module Document
 
     private def self.with_receipt(input : Acc::DocumentInput, receipt : Receipt) : Acc::DocumentInput
       input.copy_with(attachment_id: receipt.original_attachment_id.try(&.to_i64), source: "#{SOURCE_PREFIX}#{receipt.id}")
+    end
+
+    # Facture reçue hors plateforme : pièce jointe et source du
+    # justificatif, origine forcée, quoi qu'ait saisi l'écran.
+    private def self.received(input : Acc::ReceivedInvoiceInput, receipt : Receipt) : Acc::ReceivedInvoiceInput
+      input.copy_with(document: with_receipt(input.document, receipt), origin: Acc::ReceptionOrigin::OffPlatform,
+        platform_reference: "")
+    end
+
+    # Facture reçue par la plateforme agréée (déposée par `receive`).
+    private def self.einvoice?(receipt : Receipt) : Bool
+      receipt.source == "einvoice"
+    end
+
+    private def self.einvoice_error(receipt : Receipt) : Result(ReceiptView)
+      Result(ReceiptView).failure(FieldError.base("document.errors.receipt.einvoice"))
     end
 
     private def self.entry_candidate(entry : Acc::EntryView) : CandidateView
