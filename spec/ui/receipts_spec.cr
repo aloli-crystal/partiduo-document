@@ -205,6 +205,19 @@ describe "Boîte « Justificatifs à traiter » sous /ext/DOCUMENT/ (ADR-005 D8)
     Api.receipt(S.admin, receipt.id).to_process?.should be_true
   end
 
+  it "signale une écriture d'achat déjà passée comme doublon, sans autre justificatif semblable" do
+    browser = signed_in
+    Books.card("SUPPLIER", "Orange Business", "FOUR-ORANGE")
+    receipt = S.capture(S.jpeg, "copie.jpg", Api::DetailsInput.new(supplier_code: "FOUR-ORANGE", amount: S.d("86.40"),
+      date: S.date("2026-09-24")))
+    Acc.post_purchase(Books.system, Acc::DocumentInput.new(ledger_id: Books.ledger("A01").id, date: S.date("2026-09-24"),
+      third_party: "FOUR-ORANGE", label: "Orange fibre", lines: [Acc::DocumentLineInput.new(amount: S.d("72"), account: "603",
+      vat_rate: "NOR")])).value!
+    page = browser.get("/ext/DOCUMENT/#{receipt.id}")
+    page.status.should eq(200)
+    page.html.should contain("data-doc-duplicates")
+  end
+
   it "rattache à une écriture existante depuis la recherche" do
     browser = signed_in
     Books.card("SUPPLIER", "Orange Business", "FOUR-ORANGE")

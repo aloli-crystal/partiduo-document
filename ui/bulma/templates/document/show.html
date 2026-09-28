@@ -22,8 +22,8 @@
         {% if duplicates || entries %}
         <div class="notification is-warning is-light pd-alert" role="status" data-doc-duplicates>{% include "ui/_icon.html" with name="triangle-alert" %}<div>
           <p><strong>{% translate "document_ui.show.duplicates" %}</strong></p>
-          <ul>{% for other in duplicates %}<li><a href="{{ other.show_url }}">{{ other.title }}</a> · {{ other.meta }}{% if other.amount %} · {{ other.amount }}{% endif %} · {{ other.status_label }}</li>{% endfor %}
-          {% for entry in entries %}<li>{% translate "document_ui.show.duplicate_entry" %} {% if entry.url %}<a href="{{ entry.url }}">{{ entry.reference }}</a>{% else %}{{ entry.reference }}{% endif %} · {{ entry.label }} · {{ entry.date }} · {{ entry.amount }}</li>{% endfor %}</ul>
+          <ul>{% if duplicates %}{% for other in duplicates %}<li><a href="{{ other.show_url }}">{{ other.title }}</a> · {{ other.meta }}{% if other.amount %} · {{ other.amount }}{% endif %} · {{ other.status_label }}</li>{% endfor %}{% endif %}
+          {% if entries %}{% for entry in entries %}<li>{% translate "document_ui.show.duplicate_entry" %} {% if entry.url %}<a href="{{ entry.url }}">{{ entry.reference }}</a>{% else %}{{ entry.reference }}{% endif %} · {{ entry.label }} · {{ entry.date }} · {{ entry.amount }}</li>{% endfor %}{% endif %}</ul>
         </div></div>
         {% endif %}
         {% if can_write %}<div class="buttons">
