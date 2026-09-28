@@ -2,7 +2,8 @@
 
 module Document
   # Justificatif de la boîte « Justificatifs à traiter » (ADR-005 D8),
-  # successeur de `noalyss_document.document` et de `acc_operation` (NDER).
+  # successeur des tables `document` et `acc_operation` (NDER) du module de
+  # justificatifs d'origine.
   # Interne : on le lit et on l'écrit par `Document::Api`.
   #
   # Les fichiers sont des pièces jointes du socle (`core_attachment`, ADR-006

@@ -5,8 +5,8 @@ require "./models/**"
 require "./services/**"
 require "./api/**"
 
-# Extension DOCUMENT de Partiduo, successeur de `noalyss_document` (NDER,
-# NDC) de NOALYSS : la boîte unique « Justificatifs à traiter » (ADR-005 D8).
+# Extension DOCUMENT de Partiduo, successeur du module de justificatifs
+# (NDER, NDC) de l'application d'origine : la boîte unique « Justificatifs à traiter » (ADR-005 D8).
 # Même plan qu'une application du cœur (DECISIONS C1) : `manifest.cr`,
 # `models/`, `migrations/`, `services/` (interne), `api/` (contrat public
 # `Document::Api`), `locales/`.

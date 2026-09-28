@@ -2,8 +2,8 @@ name: partiduo-document
 version: 0.1.0
 
 description: |
-  Extension DOCUMENT de Partiduo, successeur de noalyss_document (NDER, NDC)
-  de NOALYSS : boîte unique « Justificatifs à traiter » (photos, fichiers
+  Extension DOCUMENT de Partiduo, successeur du module de justificatifs
+  (NDER, NDC) de l'application d'origine : boîte unique « Justificatifs à traiter » (photos, fichiers
   déposés, factures reçues par la plateforme agréée), compléments facultatifs,
   saisie de l'écriture d'achat avec l'image à côté, rattachement à une
   écriture ou à une facture (ADR-005 D8, ADR-003).

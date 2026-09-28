@@ -3,10 +3,10 @@
 require "../spec_helper"
 
 # Cas limites, permissions, modules inactifs et intégrité en base de la boîte
-# « Justificatifs à traiter » (lot E, testeur). Règles reprises de
-# `noalyss_document` : `Document_Load::upload` (types admis, nom du
-# fichier), `Document_Operation::warning_duplicate` (doublons : même
-# fournisseur, même date, même montant, écriture courante exclue).
+# « Justificatifs à traiter » (lot E, testeur). Règles reprises
+# de l'application d'origine : types admis et nom du fichier au dépôt ;
+# doublons (même fournisseur, même date, même montant, écriture courante
+# exclue). Correspondances : README.adoc.
 
 private alias Api = Document::Api
 private alias Acc = Partiduo::Api::Accounting
@@ -79,7 +79,7 @@ describe "Justificatifs : règles, cas limites et intégrité (lot E)" do
     expect_raises(Partiduo::Api::NotFound) { Api.file(S.admin, 999_999_i64) }
   end
 
-  it "refuse les formats que NOALYSS n'admet pas non plus (GIF, XML en dépôt manuel)" do
+  it "refuse les formats que l'application d'origine n'admet pas non plus (GIF, XML en dépôt manuel)" do
     S.activate
     gif = "GIF89a\x01\x00\x01\x00".to_slice
     Api.check_capture(S.admin, Api::CaptureInput.new("a.gif", gif)).error_keys

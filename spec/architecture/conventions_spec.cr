@@ -29,6 +29,16 @@ describe "Conventions de l'extension DOCUMENT" do
     missing.should be_empty
   end
 
+  it "ne cite le logiciel d'origine que dans la documentation (*.adoc, *.md)" do
+    root = Document::SpecSupport::ROOT
+    name = "noa" + "lyss"
+    output = IO::Memory.new
+    status = Process.run("git", ["-C", root, "grep", "-il", name, "--", ".", ":!*.adoc", ":!*.md"], output: output)
+    # git grep rend 1 quand rien n'est trouvé, 0 sinon ; tout autre code est une erreur.
+    status.exit_code.should_not eq(128)
+    output.to_s.lines.should eq([] of String)
+  end
+
   it "a les mêmes clés de traduction en fr, en et nl" do
     %w[src/document/locales ui/bulma/locales].each do |dir|
       keys = Partiduo::LOCALES.to_h do |locale|

@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Boîte « Justificatifs à traiter » (ADR-005 D8), successeur des tables
-# `document`, `acc_operation` et `document_supp` du schéma
-# `noalyss_document`.
+# `document`, `acc_operation` et `document_supp` du schéma du module de
+# justificatifs d'origine.
 #
 # Intégrité en base :
 #

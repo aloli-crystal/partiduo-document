@@ -112,6 +112,21 @@ DATABASE_URL='postgres:///partiduo_test_<agent>?host=/tmp' crystal spec
 crystal tool format src spec ui config && bin/ameba
 ----
 
+== Correspondance avec NOALYSS
+
+Le code ne cite pas le logiciel d'origine (règle du projet, garde-fou en CI
+et dans `spec/architecture/conventions_spec.cr`) ; les correspondances utiles
+sont consignées ici.
+
+* Extension : `noalyss_document` (entrées `NDER` et `NDC`), schéma
+  `noalyss_document` (tables `document`, `acc_operation`, `document_supp`),
+  repris par `Document::Receipt` et la migration
+  `0001_create_document_receipt`.
+* Types admis et nom du fichier au dépôt : `Document_Load::upload`
+  (`spec/document/rules_spec.cr`).
+* Doublons possibles : `Document_Operation::warning_duplicate`
+  (`Document::Api.duplicates`, `DuplicatesView`).
+
 == Licence
 
 AGPL-3.0-or-later (voir `LICENSE`).

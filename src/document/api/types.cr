@@ -140,7 +140,7 @@ module Document
     # Doublons possibles (ADR-004 D9) : autres justificatifs de même contenu,
     # ou du même fournisseur, à la même date et au même montant ; écritures
     # d'achat déjà enregistrées du même fournisseur, même date, même montant
-    # (`warning_duplicate` de NOALYSS).
+    # (règle reprise de l'application d'origine).
     record DuplicatesView, receipts : Array(ReceiptView), entries : Array(CandidateView) do
       def found? : Bool
         !receipts.empty? || !entries.empty?

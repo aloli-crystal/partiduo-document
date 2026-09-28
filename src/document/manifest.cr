@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Manifeste de l'extension DOCUMENT (ADR-003 D2, `doc/api/modules.adoc` du
-# cœur), successeur des deux entrées de `noalyss_document` : NDER (saisie) et
+# cœur), successeur des deux entrées du module de justificatifs d'origine : NDER (saisie) et
 # NDC (chargement depuis un téléphone), réunies dans une seule boîte
 # « Justificatifs à traiter » (ADR-005 D8).
 #

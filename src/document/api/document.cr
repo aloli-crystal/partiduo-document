@@ -319,8 +319,8 @@ module Document
         Partiduo::Api::Core.attachment_content(actor, attachment_id.to_i64))
     end
 
-    # Doublons possibles d'un justificatif (ADR-004 D9, `warning_duplicate`
-    # de NOALYSS) : même contenu, ou même fournisseur, même date et même
+    # Doublons possibles d'un justificatif (ADR-004 D9, règle reprise de
+    # l'application d'origine) : même contenu, ou même fournisseur, même date et même
     # montant ; écritures d'achat déjà enregistrées pour la même fiche, à la
     # même date et au même montant (Comptabilité active et lisible).
     def self.duplicates(actor : Actor, id : Int64) : DuplicatesView
