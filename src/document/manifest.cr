@@ -23,7 +23,7 @@
 Partiduo::Modules.register do
   code "DOCUMENT"
   name "document.module.name"
-  version "0.1.0"
+  version Document::VERSION
   requires_core "~> 0.1"
 
   permission "document.receipt.read"
